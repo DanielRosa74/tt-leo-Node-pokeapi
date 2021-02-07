@@ -4,7 +4,7 @@ import { Pokemons, Types, Moves } from '../models'
 const pokemonsRouter = Router()
 
 pokemonsRouter.get('/all', async (req, res) => {
-    const pokemons = await Pokemons.find({}).populate('types', 'moves')
+    const pokemons = await Pokemons.find({}).populate('types').populate('moves')
     try {
         res.json({
             success: true,
@@ -22,7 +22,7 @@ pokemonsRouter.get('/all', async (req, res) => {
 pokemonsRouter.get('/:name', async (req, res) => {
     const { name } = req.params
     try {
-        const pokemonDb = await Pokemons.findOne({name: name}).populate('types', 'moves')
+        const pokemonDb = await Pokemons.findOne({name: name}).populate('types').populate('moves')
         res.json({
             success: true,
             pokemon: pokemonDb,
@@ -37,7 +37,7 @@ pokemonsRouter.get('/:name', async (req, res) => {
 })
 
 pokemonsRouter.post('/create', async (req, res) => {
-    const { types: requestTypes, moves: requestedMoves } = req.body
+    const { types: requestTypes, moves: requestMoves } = req.body
     
     const promises = []
 
@@ -45,7 +45,7 @@ pokemonsRouter.post('/create', async (req, res) => {
         promises.push(Types.findOne({ name: type }))
     })
 
-    requestTypes.forEach(move => {
+    requestMoves.forEach(move => {
         promises.push(Moves.findOne({ name: move }))
     })
 
@@ -130,7 +130,7 @@ pokemonsRouter.post('/update', async (req, res) => {
     
     await pokemon.save(err => {
         if(err){
-            res.status(500).json({
+            return res.status(500).json({
                 success: false,
                 message: 'Erro interno do servidor',
                 error: err
