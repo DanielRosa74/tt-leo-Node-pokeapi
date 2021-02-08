@@ -60,7 +60,7 @@ pokemonsRouter.post('/create', async (req, res) => {
             }
         })
 
-        const newPokemon = new Pokemons( { ...req.body, types, moves })
+        const newPokemon = new Pokemons( { ...req.body, types, moves }).populate('types').populate('moves')
 
         newPokemon.save(err => {
             if(err){
@@ -89,21 +89,23 @@ pokemonsRouter.post('/update', async (req, res) => {
         return
     }
 
-    const pokemon = await Pokemons.findOne({ name })
+    const pokemon = await Pokemons.findOne({ name }).populate('types').populate('moves')
     
     if(req.body.types) {
         const promises = []
-
         req.body.types.forEach(type => {
             promises.push(Types.findOne({ name: type }))
         })
         
         Promise.allSettled(promises).then(results => {
-                results.forEach(({ status, value }) => {
+            const types = []
+            
+            results.forEach(({ status, value }) => {
                 if(status === 'fulfilled' && value) {
-                    pokemon.types.push(value._id)
+                    types.push(value._id)
                 }
             })
+            pokemon.types = pokemon.types.concat(types)
         })
     }
 
@@ -115,11 +117,14 @@ pokemonsRouter.post('/update', async (req, res) => {
         })
         
         Promise.allSettled(promises).then(results => {
+            const moves = []
+
             results.forEach(({ status, value }) => {
                 if(status === 'fulfilled' && value) {
-                    pokemon.moves.push(value._id)
+                    moves.push(value._id)
                 }
             })
+            pokemon.moves = pokemon.moves.concat(moves)
         })
     }
 
