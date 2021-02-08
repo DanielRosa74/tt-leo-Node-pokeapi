@@ -60,7 +60,7 @@ pokemonsRouter.post('/create', async (req, res) => {
             }
         })
 
-        const newPokemon = new Pokemons( { ...req.body, types, moves }).populate('types').populate('moves')
+        const newPokemon = new Pokemons( { ...req.body, types, moves })
 
         newPokemon.save(err => {
             if(err){
